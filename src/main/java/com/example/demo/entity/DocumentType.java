@@ -9,6 +9,8 @@ import lombok.experimental.SuperBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "document_types")
 @Getter
@@ -27,5 +29,6 @@ public class DocumentType extends BaseEntity {
     private String description;
     
     @OneToMany(mappedBy = "documentType")
+    @JsonIgnore
     private List<Document> documents = new ArrayList<>();
 }

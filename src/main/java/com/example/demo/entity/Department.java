@@ -9,6 +9,8 @@ import lombok.experimental.SuperBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "departments")
 @Getter
@@ -28,9 +30,11 @@ public class Department extends BaseEntity {
     
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "head_id")
+    @JsonIgnore
     private User headOfDepartment;
     
     @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<User> employees = new ArrayList<>();
     
     @OneToMany(mappedBy = "department")

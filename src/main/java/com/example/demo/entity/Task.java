@@ -2,6 +2,8 @@ package com.example.demo.entity;
 
 import com.example.demo.entity.TaskPriority;
 import com.example.demo.entity.TaskStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,14 +42,17 @@ public class Task extends BaseEntity {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id", nullable = false)
+    @JsonIgnore
     private User assignee;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)
+    @JsonIgnore
     private User creator;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id")
+    @JsonIgnore
     private Document document;
     
     @PrePersist

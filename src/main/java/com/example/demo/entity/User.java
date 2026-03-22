@@ -1,6 +1,8 @@
 package com.example.demo.entity;
 
 import com.example.demo.entity.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,6 +27,7 @@ public class User extends BaseEntity {
     private String email;
     
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
     
     @Column(name = "full_name", nullable = false, length = 100)
@@ -42,22 +45,27 @@ public class User extends BaseEntity {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
+    @JsonIgnore
     private Department department;
     
     // Документы, созданные пользователем
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Document> documents = new ArrayList<>();
     
     // Задачи, назначенные пользователю
     @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Task> assignedTasks = new ArrayList<>();
     
     // Задачи, созданные пользователем
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Task> createdTasks = new ArrayList<>();
     
     // Комментарии пользователя
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Comment> comments = new ArrayList<>();
     
     // Вспомогательные методы

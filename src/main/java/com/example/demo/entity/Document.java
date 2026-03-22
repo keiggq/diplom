@@ -1,6 +1,8 @@
 package com.example.demo.entity;
 
 import com.example.demo.entity.DocumentStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -61,10 +63,12 @@ public class Document extends BaseEntity {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
+    @JsonIgnore
     private User author;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
+    @JsonIgnore
     private Department department;
     
     @ManyToOne(fetch = FetchType.LAZY)
@@ -72,9 +76,11 @@ public class Document extends BaseEntity {
     private DocumentType documentType;
     
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Comment> comments = new ArrayList<>();
     
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Task> tasks = new ArrayList<>();
     
     // Вспомогательные методы
