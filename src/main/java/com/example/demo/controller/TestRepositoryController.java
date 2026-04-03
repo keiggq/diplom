@@ -1,5 +1,6 @@
 package com.example.demo.controller;
-
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.example.demo.entity.*;
 import com.example.demo.repository.jpa.*;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.Map;
 @RequestMapping("/api/test/repositories")
 @RequiredArgsConstructor
 public class TestRepositoryController {
+    
 
     private final UserJpaRepository userRepository;
     private final DepartmentJpaRepository departmentRepository;
@@ -21,7 +23,8 @@ public class TestRepositoryController {
     private final DocumentJpaRepository documentRepository;
     private final TaskJpaRepository taskRepository;
     private final CommentJpaRepository commentRepository;
-
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     @GetMapping("/check")
     public Map<String, Object> checkRepositories() {
         Map<String, Object> result = new HashMap<>();
@@ -36,7 +39,7 @@ public class TestRepositoryController {
         return result;
     }
 
-    @PostMapping("/create-test-data")
+    @GetMapping("/create-test-data")
     public String createTestData() {
         try {
             // 1. Создаем отдел
@@ -52,11 +55,11 @@ public class TestRepositoryController {
             docType.setPrefix("ДОГ");
             documentTypeRepository.save(docType);
 
-            // 3. Создаем пользователя
+            // 3. Создаем пользователя с зашифрованным паролем
             User user = new User();
             user.setUsername("testuser");
             user.setEmail("test@example.com");
-            user.setPassword("password123");
+            user.setPassword(passwordEncoder.encode("password123"));
             user.setFullName("Тестовый Пользователь");
             user.setRole(Role.ROLE_USER);
             user.setDepartment(dept);
@@ -86,7 +89,7 @@ public class TestRepositoryController {
             task.setDocument(doc);
             taskRepository.save(task);
 
-            return "✅ Тестовые данные созданы!";
+            return "✅ Тестовые данные созданы! Логин: testuser | Пароль: password123";
         } catch (Exception e) {
             return "❌ Ошибка: " + e.getMessage();
         }
