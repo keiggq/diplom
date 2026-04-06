@@ -15,4 +15,11 @@ public class CommentDto {
     private String documentTitle;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String authorPosition;
+    public String getAuthorPosition() {
+        return authorPosition;
+    }   
+    public void setAuthorPosition(String authorPosition) {
+        this.authorPosition = authorPosition;
+    }
 }

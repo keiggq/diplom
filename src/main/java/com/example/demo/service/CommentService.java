@@ -46,6 +46,7 @@ public class CommentService {
         dto.setDocumentTitle(comment.getDocument().getTitle());
         dto.setCreatedAt(comment.getCreatedAt());
         dto.setUpdatedAt(comment.getUpdatedAt());
+        dto.setAuthorPosition(comment.getAuthor().getPosition());
         return dto;
     }
     
