@@ -28,4 +28,13 @@ public class TaskDto {
     
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String adminStatus;
+
+    public String getAdminStatus() {
+        return adminStatus;
+    }
+
+    public void setAdminStatus(String adminStatus) {
+        this.adminStatus = adminStatus;
+    }
 }

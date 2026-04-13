@@ -65,7 +65,16 @@ public class Task extends BaseEntity {
             priority = TaskPriority.MEDIUM;
         }
     }
-    
+    private String adminStatus;   // IN_REVIEW, AGREED, REVISION
+
+    // Геттер и сеттер
+    public String getAdminStatus() {
+        return adminStatus;
+    }
+
+    public void setAdminStatus(String adminStatus) {
+        this.adminStatus = adminStatus;
+    }
     @PreUpdate
     protected void onUpdate() {
         super.onUpdate();

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -21,19 +22,34 @@ import java.util.List;
 public class TaskController {
     
     private final TaskService taskService;
-    
+    @GetMapping("/my")
+    public ResponseEntity<List<TaskDto>> getMyTasks(@RequestAttribute("userId") Long userId) {
+        return ResponseEntity.ok(taskService.getTasksByAssignee(userId));
+    }
     /**
      * Создание задачи
      */
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TaskDto> createTask(
             @RequestBody TaskCreateDto dto,
             @RequestAttribute("userId") Long creatorId) {
-        
+
         TaskDto createdTask = taskService.createTask(dto, creatorId);
         return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
     }
-    
+        /**
+     * Изменение статуса задачи
+     */
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<TaskDto> updateStatus(
+            @PathVariable Long id,
+            @RequestParam String status,
+            @RequestAttribute("userId") Long userId) {
+
+        TaskDto updatedTask = taskService.updateStatus(id, status, userId);
+        return ResponseEntity.ok(updatedTask);
+    }
     /**
      * Получение задачи по ID
      */
@@ -143,16 +159,6 @@ public class TaskController {
         return ResponseEntity.ok(taskService.updateTask(id, dto));
     }
     
-    /**
-     * Изменение статуса задачи
-     */
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<TaskDto> updateTaskStatus(
-            @PathVariable Long id,
-            @RequestParam TaskStatus status) {
-        
-        return ResponseEntity.ok(taskService.updateTaskStatus(id, status));
-    }
     
     /**
      * Назначение исполнителя задачи
@@ -197,4 +203,5 @@ public class TaskController {
     public ResponseEntity<Long> getTaskCountByAssignee(@PathVariable Long userId) {
         return ResponseEntity.ok(taskService.getTaskCountByAssignee(userId));
     }
+    
 }

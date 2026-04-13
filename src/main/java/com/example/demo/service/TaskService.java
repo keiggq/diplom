@@ -4,7 +4,6 @@ import com.example.demo.dto.request.TaskCreateDto;
 import com.example.demo.dto.request.TaskUpdateDto;
 import com.example.demo.dto.response.TaskDto;
 import com.example.demo.entity.*;
-import com.example.demo.entity.TaskStatus;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.jpa.DocumentJpaRepository;
 import com.example.demo.repository.jpa.TaskJpaRepository;
@@ -46,6 +45,7 @@ public class TaskService {
         dto.setCreatorId(task.getCreator().getId());
         dto.setCreatedAt(task.getCreatedAt());
         dto.setUpdatedAt(task.getUpdatedAt());
+        dto.setAdminStatus(task.getAdminStatus());
         
         if (task.getDocument() != null) {
             dto.setDocumentId(task.getDocument().getId());
@@ -250,25 +250,42 @@ public class TaskService {
         return convertToDto(updatedTask);
     }
     
-    /**
-     * Изменение статуса задачи
+    
+        /**
+     * Обновление статуса задачи
+     * Поддерживает как статус исполнителя, так и статус администратора
      */
-    public TaskDto updateTaskStatus(Long id, TaskStatus status) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена с id: " + id));
-        
-        task.setStatus(status);
-        
-        if (status == TaskStatus.COMPLETED) {
-            task.setCompletedDate(LocalDate.now());
+    public TaskDto updateStatus(Long taskId, String statusStr, Long userId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена с id: " + taskId));
+
+        // Определяем, какой это статус
+        boolean isExecutorStatus = statusStr.equals("NEW") || statusStr.equals("IN_PROGRESS") || statusStr.equals("COMPLETED");
+        boolean isAdminStatus = statusStr.equals("IN_REVIEW") || statusStr.equals("AGREED") || statusStr.equals("REVISION");
+
+        if (isExecutorStatus) {
+            // Статус исполнителя
+            task.setStatus(TaskStatus.valueOf(statusStr));   // преобразуем String в enum
+
+            if (statusStr.equals("COMPLETED")) {
+                task.setCompletedDate(LocalDate.now());
+                // Автоматически ставим статус администратора "В обработке"
+                task.setAdminStatus("IN_REVIEW");
+            }
+        } 
+        else if (isAdminStatus) {
+            // Статус администратора
+            task.setAdminStatus(statusStr);
+        } 
+        else {
+            throw new IllegalArgumentException("Неизвестный статус: " + statusStr);
         }
-        
+
         Task updatedTask = taskRepository.save(task);
-        log.info("Статус задачи {} изменен на {}", id, status);
-        
+        log.info("Статус задачи {} изменен на {} (userId={})", taskId, statusStr, userId);
+
         return convertToDto(updatedTask);
     }
-    
     /**
      * Назначение исполнителя задачи
      */
