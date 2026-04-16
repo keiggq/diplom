@@ -28,7 +28,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+        
+        // Пропускаем публичные эндпоинты и статические ресурсы
+        return path.startsWith("/api/auth/") ||
+               path.equals("/ping") ||
+               path.equals("/health") ||
+               path.equals("/") ||
+               path.startsWith("/h2-console") ||
+               path.startsWith("/swagger-ui") ||
+               path.startsWith("/api-docs") ||
+               path.startsWith("/api/test/") ||
+               path.matches(".*\\.(css|js|jpg|jpeg|png|gif|ico|svg|html|json)$");
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                    HttpServletResponse response, 
+                                    FilterChain filterChain)
             throws ServletException, IOException {
 
         try {
@@ -46,17 +64,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                // === Главное исправление ===
-                // Добавляем userId в request attributes
-                Long userId = ((UserDetailsImpl) userDetails).getId();
-                request.setAttribute("userId", userId);
+                if (userDetails instanceof UserDetailsImpl) {
+                    Long userId = ((UserDetailsImpl) userDetails).getId();
+                    request.setAttribute("userId", userId);
 
-                // Добавляем роль для админских проверок
-                boolean isAdmin = userDetails.getAuthorities().stream()
-                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-                request.setAttribute("isAdmin", isAdmin);
+                    boolean isAdmin = userDetails.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                    request.setAttribute("isAdmin", isAdmin);
 
-                logger.info("User authenticated: {} (ID: {})", username, userId);
+                    logger.debug("User authenticated: {} (ID: {})", username, userId);
+                }
             }
         } catch (Exception e) {
             logger.error("Cannot set user authentication: {}", e.getMessage());

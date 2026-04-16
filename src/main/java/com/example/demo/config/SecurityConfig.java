@@ -73,13 +73,18 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/ping", "/health").permitAll()
+                .requestMatchers("/").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/api/test/**").permitAll()
+
+                // Разрешаем получение списка пользователей без авторизации
+                .requestMatchers("/api/users").permitAll()
+                .requestMatchers("/api/users/**").permitAll()   // если будут запросы по ID
+
                 .anyRequest().authenticated()
             );
 
-        // Добавляем JWT фильтр
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

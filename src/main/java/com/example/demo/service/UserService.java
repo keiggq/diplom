@@ -88,9 +88,10 @@ public class UserService {
     /**
      * Получение пользователя по ID
      */
-    public User getUserById(Long id) {
-        return userRepository.findById(id)
+    public UserDto getUserById(Long id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден с id: " + id));
+        return convertToDto(user);
     }
     
     /**
@@ -118,25 +119,30 @@ public class UserService {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
-    
-    /**
+   private User findUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден с id: " + id));
+    }
+   
+   /**
      * Обновление пользователя
      */
     public UserDto updateUser(Long id, String fullName, String position, String phone) {
-        User user = getUserById(id);
+        User user = findUserById(id);
         
         user.setFullName(fullName);
         user.setPosition(position);
         user.setPhone(phone);
         
-        return convertToDto(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+        return convertToDto(savedUser);
     }
     
     /**
      * Смена пароля
      */
     public void changePassword(Long id, String oldPassword, String newPassword) {
-        User user = getUserById(id);
+        User user = findUserById(id);
         
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new RuntimeException("Старый пароль неверен");
@@ -151,7 +157,7 @@ public class UserService {
      * Удаление пользователя
      */
     public void deleteUser(Long id) {
-        User user = getUserById(id);
+        User user = findUserById(id);
         userRepository.delete(user);
         log.info("Пользователь удален с id: {}", id);
     }
