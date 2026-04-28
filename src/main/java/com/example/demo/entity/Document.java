@@ -107,4 +107,8 @@ public class Document extends BaseEntity {
             version = "1.0";
         }
     }
+    @ElementCollection
+        @CollectionTable(name = "document_access", joinColumns = @JoinColumn(name = "document_id"))
+        @Column(name = "user_id")
+        private List<Long> visibleToUserIds = new ArrayList<>();
 }

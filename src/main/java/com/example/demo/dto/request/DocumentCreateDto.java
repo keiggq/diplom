@@ -2,7 +2,7 @@ package com.example.demo.dto.request;
 
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.util.List;
 import java.time.LocalDate;
 
 @Data
@@ -17,5 +17,6 @@ public class DocumentCreateDto {
     private Long departmentId;
     private String keywords;
     private String version;
+    private List<Long> visibleToUserIds;
     private MultipartFile file;
 }

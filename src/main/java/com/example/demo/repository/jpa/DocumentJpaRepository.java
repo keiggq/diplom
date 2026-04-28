@@ -115,4 +115,5 @@ public interface DocumentJpaRepository extends JpaRepository<Document, Long> {
     
     // Поиск по автору и диапазону дат
     List<Document> findByAuthorIdAndCreationDateBetween(Long authorId, LocalDate startDate, LocalDate endDate);
+    
 }

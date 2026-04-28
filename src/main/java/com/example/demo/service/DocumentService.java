@@ -3,7 +3,6 @@ package com.example.demo.service;
 import com.example.demo.dto.request.DocumentCreateDto;
 import com.example.demo.dto.response.DocumentDto;
 import com.example.demo.entity.*;
-import com.example.demo.entity.DocumentStatus;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.jpa.*;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,20 +80,15 @@ public class DocumentService {
         return dto;
     }
     
-    /**
-     * Создание нового документа с файлом
-     */
     public DocumentDto createDocument(DocumentCreateDto dto, MultipartFile file) {
         log.info("Создание нового документа: {}", dto.getTitle());
         
-        // Сохраняем файл на диск
+        // Сохраняем файл
         String fileName = fileStorageService.storeFile(file);
         
-        // Получаем автора
         User author = userRepository.findById(dto.getAuthorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Автор не найден с id: " + dto.getAuthorId()));
         
-        // Создаем документ
         Document document = new Document();
         document.setTitle(dto.getTitle());
         document.setDescription(dto.getDescription());
@@ -101,34 +96,44 @@ public class DocumentService {
         document.setDocumentDate(dto.getDocumentDate() != null ? dto.getDocumentDate() : LocalDate.now());
         document.setCreationDate(LocalDate.now());
         document.setExpiryDate(dto.getExpiryDate());
-        document.setStatus(DocumentStatus.CREATED);
+        document.setStatus(DocumentStatus.CREATED);           // Принудительно DRAFT
         document.setFileName(file.getOriginalFilename());
         document.setFilePath(fileName);
-        document.setFileSize(file.getSize());
+        document.setFileSize(file.getSize());  
         document.setFileType(file.getContentType());
         document.setAuthor(author);
         document.setKeywords(dto.getKeywords());
         document.setVersion(dto.getVersion() != null ? dto.getVersion() : "1.0");
+
+        // === ПРАВА ДОСТУПА — САМОЕ ВАЖНОЕ ===
+        List<Long> visibleUsers = new ArrayList<>();
+        visibleUsers.add(dto.getAuthorId());                    // Автор всегда видит
         
-        // Устанавливаем тип документа, если указан
-        if (dto.getDocumentTypeId() != null) {
-            DocumentType documentType = documentTypeRepository.findById(dto.getDocumentTypeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Тип документа не найден с id: " + dto.getDocumentTypeId()));
-            document.setDocumentType(documentType);
+        // Добавляем пользователей из DTO, если они переданы
+        if (dto.getVisibleToUserIds() != null) {
+            visibleUsers.addAll(dto.getVisibleToUserIds());
         }
         
-        // Устанавливаем отдел, если указан
+        document.setVisibleToUserIds(visibleUsers);
+
+        // Отдел и тип документа
         if (dto.getDepartmentId() != null) {
             Department department = departmentRepository.findById(dto.getDepartmentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Отдел не найден с id: " + dto.getDepartmentId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Отдел не найден"));
             document.setDepartment(department);
         } else {
             document.setDepartment(author.getDepartment());
         }
-        
+
+        if (dto.getDocumentTypeId() != null) {
+            DocumentType type = documentTypeRepository.findById(dto.getDocumentTypeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Тип документа не найден"));
+            document.setDocumentType(type);
+        }
+
         Document savedDocument = documentRepository.save(document);
-        log.info("Документ создан с id: {}", savedDocument.getId());
-        
+        log.info("Документ создан с id: {}, visibleToUserIds: {}", savedDocument.getId(), visibleUsers);
+
         return convertToDto(savedDocument);
     }
     
